@@ -1,0 +1,17 @@
+name: Supabase keepalive
+on:
+  schedule:
+    - cron: "17 3 */3 * *"     # every 3 days, 03:17 UTC
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping pushup_ping
+        run: |
+          curl -sS -X POST \
+            "${{ secrets.PUSHUP_SUPABASE_URL }}/rest/v1/rpc/pushup_ping" \
+            -H "apikey: ${{ secrets.PUSHUP_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.PUSHUP_ANON_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{}' --fail

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0f766e" />
+<title>HariOm Sales — સમાચાર અને સૂચનાઓ</title>
+<meta name="description" content="HariOm Sales ની તાજી સૂચનાઓ, પ્રસંગો, ફોટા અને વિડીયો." />
+
+<link rel="manifest" href="/manifest.json" />
+<link rel="icon" href="/icons/icon-192.png" />
+<link rel="apple-touch-icon" href="/icons/icon-192.png" />
+
+<!-- Gujarati webfont -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati:wght@400;600;700&display=swap" rel="stylesheet" />
+
+<!-- Cache-busted styles (fix #16) -->
+<link rel="stylesheet" href="/style.css?v=1.0.0" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-row">
+    <h1 class="brand">HariOm&nbsp;Sales</h1>
+    <button id="btn-subscribe" class="btn btn-sub" type="button">
+      <span id="sub-label">સૂચનાઓ ચાલુ કરો</span>
+    </button>
+  </div>
+  <p id="sub-state" class="sub-state" role="status" aria-live="polite"></p>
+</header>
+
+<!-- Blocked-permission banner (§8.2) -->
+<div id="blocked-banner" class="banner banner-warn" hidden>
+  <strong>સૂચનાઓ બ્લોક કરેલી છે.</strong>
+  <span>Chrome માં ⋮ → Site settings → Notifications → Allow કરો, પછી પેજ રીફ્રેશ કરો.</span>
+</div>
+
+<nav class="tabs" role="tablist">
+  <button class="tab is-active" role="tab" data-tab="feed"    aria-selected="true">સમાચાર</button>
+  <button class="tab"           role="tab" data-tab="media"   aria-selected="false">મીડિયા</button>
+  <button class="tab"           role="tab" data-tab="contact" aria-selected="false">સંપર્ક</button>
+</nav>
+
+<main class="wrap">
+
+  <!-- ================= FEED TAB ================= -->
+  <section id="tab-feed" class="tabpanel" role="tabpanel">
+
+    <!-- Upcoming events (§8.6) — hidden when empty -->
+    <section id="events-section" class="card-soft" hidden>
+      <h2 class="h2">આવનારા પ્રસંગો</h2>
+      <div id="events-list" class="events-list"></div>
+    </section>
+
+    <div class="search-row">
+      <input id="search" class="input" type="search" inputmode="search"
+             placeholder="શોધો…" aria-label="સમાચાર શોધો" />
+      <button id="search-clear" class="btn btn-ghost" type="button" hidden>સાફ કરો</button>
+    </div>
+
+    <!-- Starred pins (§8.4) -->
+    <section id="starred-section" hidden>
+      <h2 class="h2">પિન કરેલા</h2>
+      <div id="starred-list"></div>
+    </section>
+
+    <h2 class="h2" id="feed-heading">તાજા સમાચાર</h2>
+    <div id="feed-list"></div>
+
+    <div id="feed-skeleton" class="skeleton-wrap" hidden>
+      <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+    </div>
+
+    <p id="feed-empty"  class="state-msg" hidden>અત્યારે કોઈ સમાચાર નથી.</p>
+    <div id="feed-error" class="state-msg state-err" hidden>
+      <span>ડેટા લોડ થઈ શક્યો નથી.</span>
+      <button id="feed-retry" class="btn btn-small" type="button">ફરી પ્રયાસ કરો</button>
+    </div>
+    <p id="feed-end" class="state-msg" hidden>બસ, આટલું જ.</p>
+
+    <!-- Infinite-scroll sentinel -->
+    <div id="sentinel" aria-hidden="true"></div>
+  </section>
+
+  <!-- ================= MEDIA TAB ================= -->
+  <section id="tab-media" class="tabpanel" role="tabpanel" hidden>
+    <h2 class="h2">વિડીયો</h2>
+    <ul id="videos-list" class="videos-list"></ul>
+    <p id="videos-empty" class="state-msg" hidden>કોઈ વિડીયો નથી.</p>
+
+    <h2 class="h2">ફોટા</h2>
+    <div id="photos-grid" class="photo-grid"></div>
+    <p id="photos-empty" class="state-msg" hidden>કોઈ ફોટો નથી.</p>
+    <button id="photos-more" class="btn btn-ghost btn-block" type="button" hidden>વધુ ફોટા</button>
+  </section>
+
+  <!-- ================= CONTACT TAB ================= -->
+  <section id="tab-contact" class="tabpanel" role="tabpanel" hidden>
+    <h2 class="h2">અમારો સંપર્ક કરો</h2>
+    <form id="contact-form" class="form" novalidate>
+      <label class="lbl" for="c-name">નામ *</label>
+      <input id="c-name" class="input" name="name" maxlength="80" required />
+
+      <label class="lbl" for="c-mobile">મોબાઇલ (10 અંક) *</label>
+      <input id="c-mobile" class="input" name="mobile" inputmode="tel"
+             maxlength="18" placeholder="+91 98765 43210" required />
+
+      <label class="lbl" for="c-email">ઈ-મેલ *</label>
+      <input id="c-email" class="input" name="email" type="email" maxlength="120" required />
+
+      <label class="lbl" for="c-message">સંદેશ *</label>
+      <textarea id="c-message" class="input" name="message" rows="5" maxlength="2000" required></textarea>
+
+      <label class="lbl" for="c-captcha">
+        ચકાસણી: <span id="captcha-q">લોડ થાય છે…</span>
+      </label>
+      <div class="row">
+        <input id="c-captcha" class="input" name="captcha" inputmode="numeric" maxlength="6" required />
+        <button id="captcha-refresh" class="btn btn-ghost" type="button" title="નવો પ્રશ્ન">↻</button>
+      </div>
+
+      <button id="contact-submit" class="btn btn-primary btn-block" type="submit">મોકલો</button>
+      <p id="contact-msg" class="state-msg" role="status" aria-live="polite" hidden></p>
+    </form>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <p>© HariOm Sales</p>
+</footer>
+
+<!-- Custom subscribe prompt (never the raw browser prompt) -->
+<div id="prompt-modal" class="modal" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="pm-title">
+    <h3 id="pm-title">સૂચનાઓ મેળવવી છે?</h3>
+    <p>નવા સમાચાર અને ઓફર તરત જ તમારા ફોન પર મળશે.</p>
+    <div class="modal-actions">
+      <button id="pm-no"  class="btn btn-ghost" type="button">પછી</button>
+      <button id="pm-yes" class="btn btn-primary" type="button">હા, ચાલુ કરો</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="/config.js?v=1.0.0"></script>
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script src="/app.js?v=1.0.0" defer></script>
+</body>
+</html>

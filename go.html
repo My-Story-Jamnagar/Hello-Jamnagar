@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex,nofollow" />
+<title>ખુલે છે…</title>
+<link rel="stylesheet" href="/style.css?v=1.0.0" />
+</head>
+<body class="go-body">
+<div class="go-box">
+  <div class="spinner" aria-hidden="true"></div>
+  <p id="go-msg">લિંક ખુલે છે…</p>
+  <p id="go-fallback" hidden><a id="go-link" class="btn btn-primary" href="/">હોમ પેજ પર જાઓ</a></p>
+</div>
+
+<script src="/config.js?v=1.0.0"></script>
+<script>
+/* =====================================================================
+   D1(a) click interstitial.
+   SECURITY: the redirect target comes ONLY from pushup_log_click(), i.e.
+   from messages.redirect_url in the DB. Any ?u= parameter is IGNORED so
+   this page can never be used as an open redirect.
+   ===================================================================== */
+(function () {
+  var cfg  = window.PUSHUP_CONFIG || {};
+  var msgEl = document.getElementById('go-msg');
+  var fb    = document.getElementById('go-fallback');
+
+  function fail(text) {
+    msgEl.textContent = text;
+    fb.hidden = false;
+  }
+
+  var id = new URLSearchParams(location.search).get('id') || '';
+  var UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+  if (!UUID_RE.test(id)) { fail('લિંક અમાન્ય છે.'); return; }
+
+  // Hard timeout so a slow network never traps the user here.
+  var done = false;
+  var timer = setTimeout(function () {
+    if (!done) { done = true; location.replace('/'); }
+  }, 4000);
+
+  fetch(cfg.SUPABASE_URL + '/rest/v1/rpc/' + cfg.RPC_LOG_CLICK, {
+    method: 'POST',
+    headers: {
+      'apikey': cfg.SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + cfg.SUPABASE_ANON_KEY,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ p_message_id: id })
+  })
+  .then(function (r) { return r.ok ? r.json() : null; })
+  .then(function (url) {
+    if (done) return;
+    done = true; clearTimeout(timer);
+    if (typeof url === 'string' && /^https?:\/\//i.test(url)) {
+      location.replace(url);                 // DB-provided target only
+    } else {
+      location.replace('/');                 // no redirect_url → home
+    }
+  })
+  .catch(function () {
+    if (done) return;
+    done = true; clearTimeout(timer);
+    location.replace('/');
+  });
+})();
+</script>
+</body>
+</html>
