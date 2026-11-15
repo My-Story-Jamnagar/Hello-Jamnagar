@@ -5,14 +5,14 @@
    ===================================================================== */
 window.PUSHUP_CONFIG = {
   // ---- Supabase (public anon key only) ----
-  SUPABASE_URL:        "SUPABASE_URL",            // e.g. https://xxxx.supabase.co
-  SUPABASE_ANON_KEY:   "SUPABASE_ANON_KEY",
+  SUPABASE_URL:        "https://hefjcizqisaavuiflxcl.supabase.co",            // e.g. https://xxxx.supabase.co
+  SUPABASE_ANON_KEY:   "sb_publishable_5p8RwAKIr7i0UBcwMx9F_g_4ycCVhJ3",
 
   // ---- OneSignal v16 ----
-  ONESIGNAL_APP_ID:    "ONESIGNAL_APP_ID",
+  ONESIGNAL_APP_ID:    "c11a2e50-2d48-4d50-a89c-278a32a093f0",
 
   // ---- GAS web app (contact form + math CAPTCHA) ----
-  GAS_WEBAPP_URL:      "GAS_WEBAPP_URL",
+  GAS_WEBAPP_URL:      "https://script.google.com/macros/s/AKfycbwdhdVdzMdm7x4LoFolTMwWd50vIRXRHboTOefOLhcKf1pIQLLtxylKIhjwBRiHoHRa/exec",
 
   // ---- Table / RPC names (Stage A prefix) ----
   TBL_MESSAGES:        "pushup_messages",
