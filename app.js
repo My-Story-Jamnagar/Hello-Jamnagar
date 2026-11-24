@@ -680,7 +680,35 @@ osReady = true;
       await new Promise(function (r) { setTimeout(r, 250); });
     }
 
-    if (!ok) { setSubUi('off'); toast(STRINGS.errGeneric); return; }
+        if (!ok) {
+      var ps2 = OS.User && OS.User.PushSubscription;
+      var regs = 'n/a';
+      try {
+        regs = (await navigator.serviceWorker.getRegistrations())
+          .map(function (r) { return r.scope; }).join(' | ') || 'none';
+      } catch (e) { regs = 'error'; }
+      var diag = 'permission=' + Notification.permission +
+                 ', optedIn=' + (ps2 && ps2.optedIn) +
+                 ', id=' + (ps2 && ps2.id ? 'yes' : 'no') +
+                 ', token=' + (ps2 && ps2.token ? 'yes' : 'no') +
+                 ', sw=' + regs;
+      console.warn('subscribe diag', diag);
+      setSubUi('off');
+      $('#sub-state').textContent = 'Subscription ના બન્યું: ' + diag;
+      toast('Subscription ના બન્યું: ' + diag);
+      return;
+    }
+`
+
+(છેલ્લી લાઈન `}` હોવી જોઈએ — upstream text માં `` ` `` typo થયો હોય તો સુધારી લો.)
+
+`app.js?v=1.0.3` → `?v=1.0.4` કરી deploy પછી ફરી ટેપ કરો. સ્ક્રીન પર દેખાતી **`Subscription ના બન્યું: ...`** વાળી લાઈન મને મોકલો. એમાંથી ચોક્કસ કહી શકું:
+
+- `sw=none` → service worker registration fail
+- `optedIn=false, id=no` → dashboard/Identity Verification કે iOS Home Screenથી ન ખોલ્યું
+- `id=no, token=yes` → OneSignal server sync delayed
+
+અને એક વાત જરૂર જણાવશો: **ફોન Android Chrome છે કે iPhone Sauri/WebKit?**
 
     try { await OS.User.addTag('group', CFG.DEFAULT_GROUP); } catch (e) {}
     setSubUi('on');
