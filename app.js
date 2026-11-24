@@ -542,7 +542,7 @@
      - Custom prompt only, after a user gesture
      - Subscription ID persisted via pushup_upsert_subscription RPC
      ===================================================================== */
-  var OS = null;
+  var OS = null, osReady = false, subscribing = false;
 
   function setSubUi(state) {
     var btn = $('#btn-subscribe'), lbl = $('#sub-label'), st = $('#sub-state');
@@ -583,11 +583,21 @@
     if (!('Notification' in window) || !('serviceWorker' in navigator)) {
       setSubUi('unsupported'); return;
     }
-    if (Notification.permission === 'denied') { setSubUi('blocked'); return; }
-    var opted = OS && OS.User && OS.User.PushSubscription &&
-                OS.User.PushSubscription.optedIn === true;
-    if (opted) { setSubUi('on'); persistSubscription(); } else { setSubUi('off'); }
+    function refreshSubState(event) {
+  if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+    setSubUi('unsupported'); return;
   }
+  if (Notification.permission === 'denied') { setSubUi('blocked'); return; }
+
+  var opted = (event && event.current && typeof event.current.optedIn === 'boolean')
+    ? event.current.optedIn
+    : !!(OS && OS.User && OS.User.PushSubscription && OS.User.PushSubscription.optedIn === true);
+
+  if (subscribing && opted === false) return;   // વચગાળાની સ્થિતિ અવગણો
+
+  if (opted) { setSubUi('on'); persistSubscription(); }
+  else { setSubUi('off'); }
+}
 
   window.OneSignalDeferred = window.OneSignalDeferred || [];
   window.OneSignalDeferred.push(async function (OneSignal) {
@@ -602,13 +612,11 @@
         // custom UI only — never the SDK's own slide prompt
         promptOptions: { slidedown: { enabled: false } }
       });
-
+osReady = true;
       // tag used by the admin panel's `filters` targeting (§7.3)
       try { await OneSignal.User.addTag('group', CFG.DEFAULT_GROUP); } catch (e) {}
 
-      OneSignal.User.PushSubscription.addEventListener('change', function () {
-        refreshSubState();
-      });
+      OneSignal.User.PushSubscription.addEventListener('change', refreshSubState);
       refreshSubState();
     } catch (e) {
       console.warn('OneSignal init', e);
@@ -623,27 +631,59 @@
   });
   $('#pm-no').addEventListener('click', function () { $('#prompt-modal').hidden = true; });
   $('#pm-yes').addEventListener('click', async function () {
-    $('#prompt-modal').hidden = true;
+  $('#prompt-modal').hidden = true;
+
+  if (!osReady) {
     $('#sub-label').textContent = STRINGS.subWorking;
     try {
-      await OS.Notifications.requestPermission();
-      if (Notification.permission === 'granted') {
-        try { await OS.User.PushSubscription.optIn(); } catch (e) {}
-        try { await OS.User.addTag('group', CFG.DEFAULT_GROUP); } catch (e) {}
-        setSubUi('on');
-        persistSubscription();
-        toast(STRINGS.thanksSub);
-      } else if (Notification.permission === 'denied') {
-        setSubUi('blocked');
-      } else {
-        setSubUi('off');
-      }
+      await new Promise(function (resolve, reject) {
+        var waited = 0;
+        (function check() {
+          if (osReady) return resolve();
+          waited += 200;
+          if (waited >= 10000) return reject(new Error('OneSignal timeout'));
+          setTimeout(check, 200);
+        })();
+      });
     } catch (e) {
-      console.warn(e);
-      setSubUi('off');
-      toast(STRINGS.errGeneric);
+      setSubUi('off'); toast(STRINGS.errGeneric); return;
     }
-  });
+  }
+
+  $('#sub-label').textContent = STRINGS.subWorking;
+  subscribing = true;
+  try {
+    await OS.Notifications.requestPermission();
+
+    if (Notification.permission !== 'granted') {
+      setSubUi(Notification.permission === 'denied' ? 'blocked' : 'off');
+      return;
+    }
+
+    try { await OS.User.PushSubscription.optIn(); }
+    catch (e) { console.warn('optIn', e); }
+
+    var ok = false;
+    for (var i = 0; i < 40; i++) {
+      var ps = OS.User && OS.User.PushSubscription;
+      if (ps && ps.optedIn === true && ps.id) { ok = true; break; }
+      await new Promise(function (r) { setTimeout(r, 250); });
+    }
+
+    if (!ok) { setSubUi('off'); toast(STRINGS.errGeneric); return; }
+
+    try { await OS.User.addTag('group', CFG.DEFAULT_GROUP); } catch (e) {}
+    setSubUi('on');
+    persistSubscription();
+    toast(STRINGS.thanksSub);
+  } catch (e) {
+    console.warn(e);
+    setSubUi('off');
+    toast(STRINGS.errGeneric);
+  } finally {
+    subscribing = false;
+  }
+});
 
   /* =====================================================================
      15. BOOT
