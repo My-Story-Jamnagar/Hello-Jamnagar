@@ -693,12 +693,15 @@ osReady = true;
                  ', token=' + (ps2 && ps2.token ? 'yes' : 'no') +
                  ', sw=' + regs;
       console.warn('subscribe diag', diag);
-                 alert('DIAG: ' + diag);
-      setSubUi('off');
+            setSubUi('off');
       $('#sub-state').textContent = 'Subscription ના બન્યું: ' + diag;
       toast('Subscription ના બન્યું: ' + diag);
-      return;
-    }
+      var bb = $('#blocked-banner');
+      if (bb) {
+        bb.hidden = false;
+        bb.style.whiteSpace = 'pre-wrap';
+        bb.textContent = 'DIAG: ' + diag;
+      }
     try { await OS.User.addTag('group', CFG.DEFAULT_GROUP); } catch (e) {}
     setSubUi('on');
     persistSubscription();
