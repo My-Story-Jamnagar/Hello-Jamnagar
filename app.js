@@ -696,13 +696,7 @@ osReady = true;
             setSubUi('off');
       $('#sub-state').textContent = 'Subscription ના બન્યું: ' + diag;
       toast('Subscription ના બન્યું: ' + diag);
-      var bb = $('#blocked-banner');
-      if (bb) {
-        bb.hidden = false;
-        bb.style.whiteSpace = 'pre-wrap';
-        bb.textContent = 'DIAG: ' + diag;
-      }
-    try { await OS.User.addTag('group', CFG.DEFAULT_GROUP); } catch (e) {}
+      try { await OS.User.addTag('group', CFG.DEFAULT_GROUP); } catch (e) {}
     setSubUi('on');
     persistSubscription();
     toast(STRINGS.thanksSub);
