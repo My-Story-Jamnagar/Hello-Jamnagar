@@ -595,8 +595,8 @@
     try {
       await OneSignal.init({
         appId: CFG.ONESIGNAL_APP_ID,
-        serviceWorkerPath: "OneSignalSDKWorker.js",
-        serviceWorkerParam: { scope: "/" },
+        serviceWorkerPath: "/Hello-Jamnagar/OneSignalSDKWorker.js",
+        serviceWorkerParam: { scope: "/Hello-Jamnagar/" },
         allowLocalhostAsSecureOrigin: true,
         autoResubscribe: true,
         // custom UI only — never the SDK's own slide prompt
