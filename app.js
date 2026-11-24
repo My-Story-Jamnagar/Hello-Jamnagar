@@ -579,25 +579,21 @@
     } catch (e) { console.warn(e); }
   }
 
-  function refreshSubState() {
+    function refreshSubState(event) {
     if (!('Notification' in window) || !('serviceWorker' in navigator)) {
       setSubUi('unsupported'); return;
     }
-    function refreshSubState(event) {
-  if (!('Notification' in window) || !('serviceWorker' in navigator)) {
-    setSubUi('unsupported'); return;
+    if (Notification.permission === 'denied') { setSubUi('blocked'); return; }
+
+    var opted = (event && event.current && typeof event.current.optedIn === 'boolean')
+      ? event.current.optedIn
+      : !!(OS && OS.User && OS.User.PushSubscription && OS.User.PushSubscription.optedIn === true);
+
+    if (subscribing && opted === false) return;   // વચગાળાની સ્થિતિ અવગણો
+
+    if (opted) { setSubUi('on'); persistSubscription(); }
+    else { setSubUi('off'); }
   }
-  if (Notification.permission === 'denied') { setSubUi('blocked'); return; }
-
-  var opted = (event && event.current && typeof event.current.optedIn === 'boolean')
-    ? event.current.optedIn
-    : !!(OS && OS.User && OS.User.PushSubscription && OS.User.PushSubscription.optedIn === true);
-
-  if (subscribing && opted === false) return;   // વચગાળાની સ્થિતિ અવગણો
-
-  if (opted) { setSubUi('on'); persistSubscription(); }
-  else { setSubUi('off'); }
-}
 
   window.OneSignalDeferred = window.OneSignalDeferred || [];
   window.OneSignalDeferred.push(async function (OneSignal) {
