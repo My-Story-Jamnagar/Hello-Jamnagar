@@ -680,7 +680,7 @@ osReady = true;
       await new Promise(function (r) { setTimeout(r, 250); });
     }
 
-        if (!ok) {
+          if (!ok) {
       var ps2 = OS.User && OS.User.PushSubscription;
       var regs = 'n/a';
       try {
@@ -693,10 +693,13 @@ osReady = true;
                  ', token=' + (ps2 && ps2.token ? 'yes' : 'no') +
                  ', sw=' + regs;
       console.warn('subscribe diag', diag);
-            setSubUi('off');
+      setSubUi('off');
       $('#sub-state').textContent = 'Subscription ના બન્યું: ' + diag;
       toast('Subscription ના બન્યું: ' + diag);
-      try { await OS.User.addTag('group', CFG.DEFAULT_GROUP); } catch (e) {}
+      return;
+    }
+
+    try { await OS.User.addTag('group', CFG.DEFAULT_GROUP); } catch (e) {}
     setSubUi('on');
     persistSubscription();
     toast(STRINGS.thanksSub);
