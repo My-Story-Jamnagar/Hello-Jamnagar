@@ -614,6 +614,13 @@ osReady = true;
 
       OneSignal.User.PushSubscription.addEventListener('change', refreshSubState);
       refreshSubState();
+
+      /* autoResubscribe/restore થોડા સમયમાં આવે છે — ફરીથી તપાસો */
+      [400, 1200, 3000, 6000].forEach(function (ms) {
+        setTimeout(function () {
+          if (!subscribing) refreshSubState();
+        }, ms);
+      });
     } catch (e) {
       console.warn('OneSignal init', e);
       setSubUi('off');
@@ -656,8 +663,14 @@ osReady = true;
       return;
     }
 
+    /* optIn() જાતે native permission prompt બતાવે છે — ટેપના gesture માં જ રાખો */
     try { await OS.User.PushSubscription.optIn(); }
     catch (e) { console.warn('optIn', e); }
+
+    if (Notification.permission !== 'granted') {
+      setSubUi(Notification.permission === 'denied' ? 'blocked' : 'off');
+      return;
+    }
 
     var ok = false;
     for (var i = 0; i < 40; i++) {
