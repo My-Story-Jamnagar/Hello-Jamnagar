@@ -686,10 +686,12 @@ osReady = true;
     setSubUi('on');
     persistSubscription();
     toast(STRINGS.thanksSub);
-  } catch (e) {
+    } catch (e) {
     console.warn(e);
+    var errMsg = e && e.message ? e.message : String(e);
     setSubUi('off');
-    toast(STRINGS.errGeneric);
+    $('#sub-state').textContent = 'Error: ' + errMsg;
+    toast('Error: ' + errMsg);
   } finally {
     subscribing = false;
   }
