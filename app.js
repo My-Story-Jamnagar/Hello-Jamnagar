@@ -656,16 +656,17 @@ osReady = true;
   $('#sub-label').textContent = STRINGS.subWorking;
   subscribing = true;
   try {
-    await OS.Notifications.requestPermission();
-
-    if (Notification.permission !== 'granted') {
-      setSubUi(Notification.permission === 'denied' ? 'blocked' : 'off');
+        /* optIn() જાતે native permission prompt બતાવે છે — ટેપના gesture માં જ રહેવું જોઈએ */
+    try {
+      await OS.User.PushSubscription.optIn();
+    } catch (e) {
+      console.warn('optIn', e);
+      var optMsg = e && e.message ? e.message : String(e);
+      setSubUi('off');
+      $('#sub-state').textContent = 'optIn error: ' + optMsg;
+      toast('optIn error: ' + optMsg);
       return;
     }
-
-    /* optIn() જાતે native permission prompt બતાવે છે — ટેપના gesture માં જ રાખો */
-    try { await OS.User.PushSubscription.optIn(); }
-    catch (e) { console.warn('optIn', e); }
 
     if (Notification.permission !== 'granted') {
       setSubUi(Notification.permission === 'denied' ? 'blocked' : 'off');
