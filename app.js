@@ -230,7 +230,7 @@
      ===================================================================== */
   function cardHtml(m) {
     var link = m.redirect_url
-      ? '<a class="card-link" href="/go.html?id=' + esc(m.id) + '" rel="noopener">' +
+      ? '<a class="card-link" href="go.html?id=' + esc(m.id) + '" rel="noopener">' +
         STRINGS.openLink + ' →</a>'
       : '';
     return '' +
