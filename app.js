@@ -693,6 +693,7 @@ osReady = true;
                  ', token=' + (ps2 && ps2.token ? 'yes' : 'no') +
                  ', sw=' + regs;
       console.warn('subscribe diag', diag);
+                 alert('DIAG: ' + diag);
       setSubUi('off');
       $('#sub-state').textContent = 'Subscription ના બન્યું: ' + diag;
       toast('Subscription ના બન્યું: ' + diag);
